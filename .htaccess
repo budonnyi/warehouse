@@ -8,6 +8,7 @@ RewriteRule ^css/(.*)$ web/css/$1 [L]
 RewriteRule ^js/(.*)$ web/js/$1 [L]
 RewriteRule ^dist/(.*)$ web/dist/$1 [L]
 RewriteRule ^plugins/(.*)$ web/plugins/$1 [L]
+RewriteRule ^pages/(.*)$ web/pages/$1 [L]
 RewriteRule ^images/(.*)$ web/images/$1 [L]
 RewriteRule (.*) /web/$1
 
