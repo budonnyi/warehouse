@@ -3,15 +3,15 @@
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 
-/** @var yii\web\View $this */
-/** @var app\models\Invoice $model */
+/* @var $this yii\web\View */
+/* @var $model common\models\Invoice */
 
 $this->title = $model->id;
 $this->params['breadcrumbs'][] = ['label' => 'Invoices', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 ?>
-<div class="invoice-view">
+<div class="container">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -31,28 +31,13 @@ $this->params['breadcrumbs'][] = $this->title;
         'attributes' => [
             'id',
             'invoice',
-            'date',
-            'bill',
-            'bill_date',
-            'contract',
-            'contract_date',
+            'product_id',
             'customer_id',
             'quantity',
-            'total_amount',
-            'total_amount_sek',
-            'document_type',
+            'price',
+            'transfer_type',
+            'date',
             'store',
-            'comment',
-            'sek_rate',
-            'custom_taxes',
-            'transport_fee',
-            'brocker_fee',
-            'additional_cost',
-            'status',
-            'checked',
-            'documents',
-            'created_at',
-            'updated_at',
         ],
     ]) ?>
 

@@ -2,8 +2,8 @@
 
 use yii\helpers\Html;
 
-/** @var yii\web\View $this */
-/** @var app\models\Invoice $model */
+/* @var $this yii\web\View */
+/* @var $model app\models\Invoice */
 
 $this->title = 'Create Invoice';
 $this->params['breadcrumbs'][] = ['label' => 'Invoices', 'url' => ['index']];
@@ -13,13 +13,13 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="content-wrapper">
     <section class="content">
         <div class="container-fluid">
+
             <h1><?= Html::encode($this->title) ?></h1>
 
             <?= $this->render('_form', [
-                'invoiceModel' => $invoiceModel,
-                'itemModels' => $itemModels,
-                'count' => $count ?? 0
+                'model' => $model, 'count' => $count ?? 0
             ]) ?>
+
         </div>
     </section>
 </div>
