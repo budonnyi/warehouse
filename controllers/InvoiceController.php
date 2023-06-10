@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Customer;
+use app\models\InvoiceItem;
 use app\models\Product;
 use app\models\Select;
 use Yii;
@@ -21,7 +22,7 @@ use yii\base\Model;
 class InvoiceController extends Controller
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function behaviors()
     {
@@ -31,7 +32,7 @@ class InvoiceController extends Controller
 //                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'logout'],
+                        'actions' => ['index', 'sale', 'create', 'update', 'view', 'add', 'delete'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -53,12 +54,13 @@ class InvoiceController extends Controller
 
     /**
      * Lists all Invoice models.
-     * @return mixed
+     *
+     * @return string
      */
     public function actionIndex()
     {
         $searchModel = new InvoiceSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = $searchModel->search($this->request->queryParams);
         $dataProvider->setSort(['defaultOrder' => ['date' => SORT_DESC, 'invoice' => SORT_DESC], 'enableMultiSort' => true]);
 
         return $this->render('index', [
@@ -67,86 +69,36 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function actionStore()
+    public function actionSale()
     {
-        // date init
-        if (!Yii::$app->session->has('start-date')) {
-            Yii::$app->session->set('start-date', date('Y-m-d', strtotime(Invoice::find()->min('date'))));
-            Yii::$app->session->set('end-date', date('Y-m-d', strtotime(Invoice::find()->max('date'))));
-        }
-        if ($request = Yii::$app->request->post()) {
-            if (isset($request['Select']['date'])) {
-                list($startDate, $endDate) = explode(' - ', $request['Select']['date']);
-                Yii::$app->session->set('start-date', date('Y-m-d', strtotime($startDate)));
-                Yii::$app->session->set('end-date', date('Y-m-d', strtotime($endDate)));
-            }
-        }
-        $startDate = Yii::$app->session->get('start-date');
-        $endDate = Yii::$app->session->get('end-date');
-
         $searchModel = new InvoiceSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-        $dataProvider->pagination = false;
-        $dataProvider->query->andWhere(['between', 'date', $startDate, $endDate]);
+        $dataProvider->setSort(['defaultOrder' => ['date' => SORT_DESC, 'invoice' => SORT_DESC], 'enableMultiSort' => true]);
+        $dataProvider->query->andWhere(['document_type' => 'sale', 'store' => 'main']);
 
-        $productList = ArrayHelper::map(Product::find()->all(), 'id', 'name');
-        $productData = array();
-
-        foreach ($dataProvider->getModels() as $item) {
-            if ($item->transfer_type == 'income') {
-                @$productData[$item->product_id]['quantity'] += $item->quantity;
-                @$productData[$item->product_id]['proffit'] -= $item->price;
-                @$productData[$item->product_id]['income_quantity'] += $item->quantity;
-                @$productData[$item->product_id]['income_price'] += $item->price * $item->quantity;
-            }
-            if ($item->transfer_type == 'sale') {
-                @$productData[$item->product_id]['quantity'] -= $item->quantity;
-                @$productData[$item->product_id]['proffit'] += $item->price;
-                @$productData[$item->product_id]['sale_quantity'] += $item->quantity;
-                @$productData[$item->product_id]['sale_price'] += $item->price * $item->quantity;
-            }
-        }
-
-        $amount = array();
-        foreach ($productData as $key => $item) {
-            @$store[$key]['product'] = $productList[$key];
-            @$store[$key]['income_quantity'] = $item['income_quantity'] ?? 0;
-            @$store[$key]['income_amount'] = number_format($item['income_price'] ?? 0, 2, ',', ' ');
-            @$store[$key]['averige_price'] = number_format(round($item['income_price'] / ($item['income_quantity'] ?? 1), 2), 2, ',', ' ');
-            @$store[$key]['sale_quantity'] = $item['sale_quantity'] ?? 0;
-            @$store[$key]['sale_amount'] = number_format($item['sale_price'] ?? 0, 2, ',', ' ');
-            @$store[$key]['store_quantity'] = $item['quantity'];
-            @$store[$key]['store_amount'] = number_format(round(($item['income_price'] / ($item['income_quantity'] ?? 1)) * $item['quantity'], 2), 2, ',', ' ');
-            @$store[$key]['proffit'] = number_format(($item['sale_price'] ?? 0) - ($item['sale_quantity'] ?? 0) * round($item['income_price'] / ($item['income_quantity'] ?? 1), 2), 2, ',', ' ');
-
-            @$amount['income'] += $item['income_price'];
-            @$amount['sale'] += $item['sale_price'] ?? 0;
-            @$amount['store'] += round(($item['income_price'] / ($item['income_quantity'] ?? 1)) * $item['quantity'], 2);
-            @$amount['proffit'] += ($item['sale_price'] ?? 0) - ($item['sale_quantity'] ?? 0) * round($item['income_price'] / ($item['income_quantity'] ?? 1), 2);
-        }
-
-//        echo '<pre>';
-//        print_r($productData);
-//        print_r($store);
-//        die;
-
-        $modelSelect = new Select();
-
-        return $this->render('store', [
+        return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
-            'productList' => $productList,
-            'productData' => $productData,
-            'modelSelect' => $modelSelect,
-            'store' => $store,
-            'amount' => $amount,
+        ]);
+    }
+
+    public function actionImport()
+    {
+        $searchModel = new InvoiceSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider->setSort(['defaultOrder' => ['date' => SORT_DESC, 'invoice' => SORT_DESC], 'enableMultiSort' => true]);
+        $dataProvider->query->andWhere(['document_type' => 'import', 'store' => 'main']);
+
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
         ]);
     }
 
     /**
      * Displays a single Invoice model.
-     * @param integer $id
-     * @return mixed
+     * @param int $id ID
+     * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionView($id)
@@ -159,63 +111,129 @@ class InvoiceController extends Controller
     /**
      * Creates a new Invoice model.
      * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
+     * @return string|\yii\web\Response
      */
+//    public function actionCreate()
+//    {
+//        $model = new Invoice();
+//
+//        if ($this->request->isPost) {
+//            if ($model->load($this->request->post()) && $model->save()) {
+//                return $this->redirect(['view', 'id' => $model->id]);
+//            }
+//        } else {
+//            $model->loadDefaultValues();
+//        }
+//
+//        return $this->render('create', [
+//            'model' => $model,
+//        ]);
+//    }
     public function actionCreate()
     {
-        $count = count(Yii::$app->request->post('Invoice', []));
-        $model = [new Invoice()];
-
-        for($i = 1; $i < $count; $i++) {
-            $model[] = new Invoice();
+        $invoiceModel = new Invoice();
+        $count = count(Yii::$app->request->post('InvoiceItem', []));
+//        $itemModels = [new InvoiceItem()];
+        for($i = 0; $i < $count; $i++) {
+            $itemModels[] = new InvoiceItem();
         }
 
-        if (Model::loadMultiple($model, Yii::$app->request->post()) && Model::validateMultiple($model)) {
+//        $itemModels = [new InvoiceItem()];
 
-            foreach ($model as $item) {
-                if(!empty($item->newCustomer)) {
-                    $customer = new Customer();
-                    $customer->name = $item->newCustomer;
-                    $customer->save(false);
+        if (Model::loadMultiple($itemModels, Yii::$app->request->post())
+            && Model::validateMultiple($itemModels)
+            && $invoiceModel->load($this->request->post())) {
+//            echo '<pre>';
+//            print_r(Yii::$app->request->post());
+//            foreach ($itemModels as $itemModel) {
+//
+//            print_r($itemModel->attributes);
+//            }
+//            die;
+
+            $invoiceModel->save();
+
+            foreach ($itemModels as $item) {
+                if (!empty($item->product_id)) {
+                    $productModel = Product::findOne(['id' => $item->product_id]);
+                } else if (!empty($item->new_product)) {
+                    $productModel = new Product();
+                    $productModel->articul = $item->articul;
+                    $productodel->name = $item->new_product;
+                    $productodel->status = 1;
+                    $productodel->save();
                 }
-                $item->invoice = $invoice ?? $item->invoice;
-                $invoice = $item->invoice;
-                $item->customer_id = $customer->id ?? $customer_id ?? $item->customer_id;
-                $customer_id = $item->customer_id;
-                $item->transfer_type = $transfer_type ?? $item->transfer_type;
-                $transfer_type = $item->transfer_type;
-                $item->date = $date ?? $item->date;
-                $date = $item->date;
-                $item->store = $store ?? $item->store;
-                $store = $item->store;
-                $item->save(false);
+
+                if (empty($productModel)) {
+                    continue;
+                }
+
+                if (!empty($item->articul))
+                    $productodel->articul = $item->articul;
+                $item->invoice_id = $invoiceModel->id;
+
+                $item->save();
             }
+
             return $this->redirect('index');
         }
 
-        return $this->render('create', [
-            'model' => $model, 'count' => $count
-        ]);
+        return $this->render('create', ['invoiceModel' => $invoiceModel, 'itemModels' => $itemModels]);
     }
 
     /**
      * Updates an existing Invoice model.
      * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
+     * @param int $id ID
+     * @return string|\yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
+
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+        $invoiceModel = $this->findModel($id);
+        $itemModels = InvoiceItem::findAll(['invoice_id' => $id]);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect('index');
+//        echo '<pre>';
+//        print_r($invoiceModel->attributes);
+//        foreach ($itemModels as $item) {
+//            print_r($item->attributes);
+//        }
+//        die;
+
+        if (Model::loadMultiple($itemModels, Yii::$app->request->post())
+            && Model::validateMultiple($itemModels)
+            && $invoiceModel->load($this->request->post())) {
+//            echo '<pre>';
+//            print_r(Yii::$app->request->post());
+//            print_r($invoiceModel->attributes)
+//            die;
+
+            $invoiceModel->update();
+
+            foreach ($itemModels as $item) {
+                if (!empty($item->product_id)) {
+                    $productModel = Product::findOne(['id' => $item->product_id]);
+                } else if (!empty($item->new_product)) {
+                    $productModel = new Product();
+                    $productModel->articul = $item->articul;
+                    $productodel->name = $item->new_product;
+                    $productodel->status = 1;
+                    $productodel->save();
+                }
+
+                if (empty($productModel)) {
+                    continue;
+                }
+
+                $productodel->articul = $item->articul ?? null;
+                $item->invoice_id = $id;
+
+                $item->save();
+            }
         }
 
-        return $this->render('update', [
-            'model' => $model,
-        ]);
+        return $this->render('update', ['invoiceModel' => $invoiceModel, 'itemModels' => $itemModels, 'count' => count($itemModels)]);
     }
 
     public function actionAdd()
@@ -224,20 +242,20 @@ class InvoiceController extends Controller
 
         return $this->renderAjax('_add_form', [
             'cnt' => $cnt+1,
-            'model' => new Invoice()
+            'model' => new InvoiceItem()
         ]);
     }
-
     /**
      * Deletes an existing Invoice model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
+     * @param int $id ID
+     * @return \yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
+        InvoiceItem::deleteAll(['invoice_id' => $id]);
 
         return $this->redirect(['index']);
     }
@@ -245,13 +263,13 @@ class InvoiceController extends Controller
     /**
      * Finds the Invoice model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
+     * @param int $id ID
      * @return Invoice the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Invoice::findOne($id)) !== null) {
+        if (($model = Invoice::findOne(['id' => $id])) !== null) {
             return $model;
         }
 
