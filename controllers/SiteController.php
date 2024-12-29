@@ -2,14 +2,18 @@
 
 namespace app\controllers;
 
+use app\models\Invoice;
+use app\models\InvoiceSearch;
 use Yii;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\User;
+use kartik\mpdf\Pdf;
 use app\models\SignupForm;
 use app\models\PasswordResetRequestForm;
 use app\models\ResetPasswordForm;
@@ -27,7 +31,7 @@ class SiteController extends Controller
 //                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'logout'],
+                        'actions' => ['index', 'logout', 'request-password-reset', 'index', 'reset-password'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -35,6 +39,11 @@ class SiteController extends Controller
                         'actions' => ['login'],
                         'allow' => true,
                         'roles' => ['?'],
+                    ],
+                    [
+                        'actions' => ['error'],
+                        'allow' => true,
+                        'roles' => ["?","@"],
                     ],
                 ],
             ],
@@ -46,36 +55,6 @@ class SiteController extends Controller
             ],
         ];
     }
-
-//    public function behaviors()
-//    {
-//        return [
-//            'access' => [
-//                'class' => AccessControl::className(),
-//                'rules' => [
-//                    [
-//                        'actions' => ['login', 'error'],
-//                        'allow' => true,
-//                    ],
-//                    [
-//                        'actions' => ['logout', 'visit', 'view-visit', 'to-work', 'find-model'],
-//                        'allow' => true,
-//                        'roles' => ['@'],
-//                    ],
-////                    [
-////                        'allow' => true,
-////                        'roles' => ['admin', 'bank', 'validator'],
-////                    ],
-//                ],
-//            ],
-//            'verbs' => [
-//                'class' => VerbFilter::className(),
-//                'actions' => [
-//                    'logout' => ['post'],
-//                ],
-//            ],
-//        ];
-//    }
 
     /**
      * {@inheritdoc}
@@ -93,6 +72,42 @@ class SiteController extends Controller
         ];
     }
 
+    public function actionGetpdf($id) {
+        $this->layout = 'pdf';
+        Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
+        $headers = Yii::$app->response->headers;
+        $headers->add('Content-Type', 'application/pdf');
+
+        $result['sold'] = 0;
+        $sold = 0;
+
+        $searchModel = new InvoiceSearch();
+        $dataProvider = $searchModel->search($this->request->queryParams);
+        $dataProvider->query->andWhere(['between', 'date', "2023-01-01", "2023-12-31" ]);
+        $dataProvider->query->andWhere(['document_type' => 'sale', 'store' => 'main', 'status' => true]);
+        foreach ($dataProvider->getModels() as $invoiceModel) {
+            @$summResult += $invoiceModel->total_amount;
+        }
+//        $model = $this->findModel($id);
+
+        //$model = $this->findModel();
+        $pdf = new Pdf([
+            'mode' => Pdf::MODE_UTF8, // leaner size using standard fonts
+            'content' => $this->render('viewpdf', ['model'=>$model]),
+            'cssFile' => '@vendor/kartik-v/yii2-mpdf/assets/kv-mpdf-bootstrap.min.css',
+            'cssInline' => '.img-circle {border-radius: 50%;}',
+            'options' => [
+                'title' => $model->title,
+                'subject' => 'PDF'
+            ],
+            'methods' => [
+                'SetHeader' => ['<img src="/images/inspire2_logo_20.png" class="img-circle"> Школа брейк данса INSPIRE||inspire2.ru'],
+                'SetFooter' => ['|{PAGENO}|'],
+            ]
+        ]);
+        return $pdf->render();
+    }
+
     /**
      * Displays homepage.
      *
@@ -100,7 +115,52 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $filter['dateFrom'] = date('Y-m-d', strtotime('first day of january this year'));
+        $filter['dateTo'] = date('Y-m-d');
+        if (!empty($_POST)) {
+            $filter['dateFrom'] = !empty($_POST['main_date_from']) ? $_POST['main_date_from'] : $filter['dateFrom'];
+            $filter['dateTo'] = !empty($_POST['main_date_to']) ? $_POST['main_date_to'] : $filter['dateTo'];
+        }
+
+        $billsSearchModel = new InvoiceSearch();
+        $billsProvider = $billsSearchModel->search($this->request->queryParams);
+        $billsProvider->setSort(['defaultOrder' => ['bill_date' => SORT_DESC, 'date' => SORT_DESC,  'invoice' => SORT_DESC], 'enableMultiSort' => true]);
+        $billsProvider->query->andWhere(['status' => [2, 3, 4, 5, 6, 7, 9]]);
+
+        $searchModel = new InvoiceSearch();
+        $dataProvider = $searchModel->search($this->request->queryParams);
+        $dataProvider->query->andWhere(['between', 'date', $filter['dateFrom'], $filter['dateTo'] ]);
+//        $dataProvider->query->andWhere(['document_type' => 'sale']);
+        $dataProvider->query->orderBy([
+            'date' => SORT_DESC,
+            'invoice'=>SORT_DESC
+        ]);
+        $dataProvider->query->andWhere(['document_type' => 'sale']);
+        $dataProvider->pagination = false;
+
+        $result = $graph = [];
+
+        foreach ($dataProvider->getModels() as $invoiceModel) {
+
+            @$graph[date('Y', strtotime($invoiceModel->date)) . '_' . date('m', strtotime($invoiceModel->date))] += $invoiceModel->total_amount;
+            if ($invoiceModel->document_type == 'sale') {
+                @$result['contracts']++;
+                @$result['summResult'] += $invoiceModel->total_amount;
+                @$result['productsResult'][$invoiceModel->status] += $invoiceModel->quantity;
+                $amount = 0;
+                foreach ($invoiceModel->payments as $payment) {
+                    $amount += !empty($payment->amount) && $payment->currency == 'uah' ? $payment->amount : 0;
+                }
+                @$result['moneyReceived'][$invoiceModel->status] += $amount;
+            }
+            if ($invoiceModel->document_type == 'import') {
+                @$result['import_deals'] += 1;
+                @$result['import_amount'] += $invoiceModel->total_amount;
+            }
+        }
+        ksort($graph);
+//echo '<pre>';var_dump($graph);exit;
+        return $this->render('index', compact('result', 'filter', 'dataProvider', 'billsProvider', 'searchModel', 'graph'));
     }
 
     /**
@@ -125,20 +185,20 @@ class SiteController extends Controller
         ]);
     }
 
-    public function actionAddAdmin()
-    {
-        $model = User::find()->where(['username' => 'admin'])->one();
-        if (empty($model)) {
-            $user = new User();
-            $user->username = 'admin';
-            $user->email = 'admin@кодер.укр';
-            $user->setPassword('admin');
-            $user->generateAuthKey();
-            if ($user->save()) {
-                echo 'good';
-            }
-        }
-    }
+//    public function actionAddAdmin()
+//    {
+//        $model = User::find()->where(['username' => 'admin'])->one();
+//        if (empty($model)) {
+//            $user = new User();
+//            $user->username = 'admin';
+//            $user->email = 'admin@кодер.укр';
+//            $user->setPassword('admin');
+//            $user->generateAuthKey();
+//            if ($user->save()) {
+//                echo 'good';
+//            }
+//        }
+//    }
 
     public function actionSignup()
     {
@@ -215,33 +275,5 @@ class SiteController extends Controller
         Yii::$app->user->logout();
 
         return $this->goHome();
-    }
-
-    /**
-     * Displays contact page.
-     *
-     * @return Response|string
-     */
-    public function actionContact()
-    {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
-
-            return $this->refresh();
-        }
-        return $this->render('contact', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Displays about page.
-     *
-     * @return string
-     */
-    public function actionAbout()
-    {
-        return $this->render('about');
     }
 }

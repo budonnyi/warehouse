@@ -22,9 +22,11 @@ class CategoryController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
+//                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'view', 'edit', 'delete', 'create', 'update'],
+                        'actions' => ['index', 'create', 'update', 'view',
+                            'delete'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -32,6 +34,11 @@ class CategoryController extends Controller
                         'actions' => ['login'],
                         'allow' => true,
                         'roles' => ['?'],
+                    ],
+                    [
+                        'actions' => ['error'],
+                        'allow' => true,
+                        'roles' => ["?", "@"],
                     ],
                 ],
             ],

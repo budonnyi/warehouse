@@ -40,7 +40,8 @@ class InvoiceItem extends \yii\db\ActiveRecord
         return [
             [['invoice_id', 'product_id', 'quantity'], 'integer'],
 //            [['quantity'], 'required'],
-            [['price', 'price_sek', 'total_sek', 'surcharge_sek'], 'number'],
+            [['service'], 'safe'],
+            [['price', 'total', 'price_sek', 'total_sek', 'surcharge_sek'], 'number'],
             [['comment'], 'string', 'max' => 255],
         ];
     }
@@ -56,6 +57,7 @@ class InvoiceItem extends \yii\db\ActiveRecord
             'product_id' => Yii::t('app', 'Product ID'),
             'quantity' => Yii::t('app', 'Quantity'),
             'price' => Yii::t('app', 'Price'),
+            'total' => Yii::t('app', 'Total'),
             'price_sek' => Yii::t('app', 'Price Sek'),
             'total_sek' => Yii::t('app', 'Total Sek'),
             'surcharge_sek' => Yii::t('app', 'Surcharge Sek'),
@@ -67,5 +69,15 @@ class InvoiceItem extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Product::className(), ['id' => 'product_id']);
     }
+
+    public function getInvoices()
+    {
+        return $this->hasOne(Invoice::className(), ['id' => 'invoice_id']);
+    }
+
+//    public function getCustomers()
+//    {
+//        return $this->hasOne(Customer::className(), ['id' => 'customer_id']);
+//    }
 
 }
