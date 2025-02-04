@@ -24,7 +24,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="card-header">
                 <div class="row">
                     <div class="col-md-3 col-6">
-                        <?php $documentTypes = ['bill' => 'Новий рахунок', 'sale' => 'Нова накладна', 'import' => 'Новий інвойс', 'income' => 'Нова закупка', 'office' => 'Офісні', 'rejected' => 'Відмінені'] ?>
+                        <?php $documentTypes = ['bill' => 'Новий рахунок', 'sale' => 'Нова накладна', 'order' => 'Додати до замовленя', 'import' => 'Новий інвойс', 'income' => 'Нова закупка', 'office' => 'Офісні', 'rejected' => 'Відмінені'] ?>
                         <?= Html::a($documentTypes[$action], ['create', 'action' => $action], ['class' => 'btn btn-block btn-outline-success btn-sm']) ?>
                     </div>
                 </div>
@@ -49,6 +49,13 @@ $this->params['breadcrumbs'][] = $this->title;
                             }
                         },
                         'columns' => [
+                            [
+                                'class' => 'yii\grid\CheckboxColumn', // Додаємо колонку з чекбоксами
+                                'headerOptions' => ['style' => 'text-align:center', 'width' => '5%'],
+                                'checkboxOptions' => function ($model) {
+                                    return ['value' => $model->id]; // Значення чекбокса буде ID моделі
+                                },
+                            ],
                             [
                                 'attribute' => 'order_num',
                                 'visible' => $action == 'import',
@@ -122,14 +129,14 @@ $this->params['breadcrumbs'][] = $this->title;
                             ],
                             [
                                 'label' => 'Продукція',
-                                'headerOptions' => ['style' => 'text-align:center', 'width' => '30%'],
+                                'headerOptions' => ['style' => 'text-align:center', 'width' => '35%'],
                                 'value' => function ($data) {
-                                    $html = '<table class=" table-borderless" style="width: 100%;font-size: 12px">';
+                                    $html = '<table class=" table-borderless" style="width: 100%;font-size: 14px">';
                                     foreach ($data->items as $item) {
-                                        $html .= '<tr><td style="line-height: 12px;padding: 0 5px;margin: 0;width: 70%; text-align: left">'
+                                        $html .= !in_array($item->products->name, ['EMB Packing', 'Ex-1 document fee']) ? '<tr><td style="line-height: 15px;padding: 0 5px;margin: 0;width: 70%; text-align: left">'
                                             . ($item->products->name ?? '-')
                                             . '</td><td style="line-height: 12px;padding: 0 5px;margin: 0;width: 10%; text-align: center">' . $item->quantity
-                                            . '</td><td style="line-height: 12px;padding: 0 5px;margin: 0;width: 20%; text-align: right">' . $item->price . '</td></tr>';
+                                            . '</td><td style="line-height: 12px;padding: 0 5px;margin: 0;width: 20%; text-align: right">' . $item->price . '</td></tr>' : '';
                                     }
                                     $html .= '</table>';
                                     return $html;

@@ -20,6 +20,13 @@ $this->params['breadcrumbs'][] = 'Редагування';
         'paymentModels' => $paymentModels,
         'count' => $count,
     ]) ?>
+<?php } else if($invoiceModel->document_type == 'order') { ?>
+    <?= $this->render('_order_form', [
+        'invoiceModel' => $invoiceModel,
+        'itemModels' => $itemModels,
+        'paymentModels' => $paymentModels,
+        'count' => $count,
+    ]) ?>
 <?php } else { ?>
     <?= $this->render('_form', [
         'invoiceModel' => $invoiceModel,

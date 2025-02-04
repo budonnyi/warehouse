@@ -328,6 +328,13 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                                         <p>На балансі</p>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="<?= \yii\helpers\Url::toRoute(['invoice/index', 'action' => 'order']) ?>"
+                                       class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Наступне замовленя</p>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                         <li class="nav-item">

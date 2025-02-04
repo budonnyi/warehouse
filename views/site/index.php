@@ -325,7 +325,7 @@ $this->title = 'Warehouse Application';
                                 'contentOptions' => ['style' => 'width:30%; white-space: normal;'],
                                 'headerOptions' => ['style' => 'text-align:center', 'width' => '15%'],
                                 'value' => function ($data) {
-                                    return '<a href="/customer/view?id=' . $data->customers->id . '">' . $data->customers->name . '</a>';
+                                    return '<a href="/customer/view?id=' . ($data->customers->id ?? 0) . '">' . ($data->customers->name ?? 0) . '</a>';
                                 },
                                 'format' => 'html'
                             ],
