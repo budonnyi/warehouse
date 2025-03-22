@@ -15,8 +15,15 @@ $this->title = 'Склад';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
+<div class="row">
+    <section class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
 <h1><?= Html::encode($this->title) ?></h1>
+            </div>
 
+            <div class="card-body p-0">
+                <div class="direct-chat-messages" style="height: 100%;">
 <table class="table table-striped">
     <thead>
     <tr>
@@ -51,3 +58,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php } ?>
     </tbody>
 </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
