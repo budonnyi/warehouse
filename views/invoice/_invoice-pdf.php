@@ -818,12 +818,12 @@ function morph($n, $f1, $f2, $f5) {
         <tr class=xl89 height=16 style='mso-height-source:userset;height:12.0pt'>
             <td height=16 class=xl90 style='height:12.0pt'><?= $i ?></td>
             <td colspan=4 class=xl91 width=350 style='border-right:.5pt solid black;
-  width:275pt'><?= $item->products->name ?></td>
+  width:275pt; padding-left: 5px'><?= $item->products->name ?></td>
             <td colspan=2 class=xl94 style='border-right:.5pt solid black;border-left:
   none'><?= number_format($item->quantity, 1, ',', ' ') ?></td>
             <td class=xl96 style='border-top:none;border-left:none'>шт</td>
-            <td class=xl104><?= number_format($item->price, 2, ',', ' ') ?></td>
-            <td class=xl105><?= number_format($item->price * $item->quantity, 2, ',', ' ') ?></td>
+            <td class=xl104 style="padding-right: 5px"><?= number_format($item->price, 2, ',', ' ') ?></td>
+            <td class=xl105 style="padding-right: 5px"><?= number_format($item->price * $item->quantity, 2, ',', ' ') ?></td>
         </tr>
             <?php $i++ ?>
         <?php } ?>

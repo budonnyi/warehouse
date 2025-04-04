@@ -931,7 +931,7 @@ function morph($n, $f1, $f2, $f5) {
             <td class=xl76></td>
         </tr>
         <tr height=36 style='mso-height-source:userset;height:27.0pt'>
-            <td colspan=2 height=36 class=xl80 width=101 style='height:27.0pt;width:76pt'>Одержувач</td>
+            <td colspan=2 height=36 class=xl80 width=101 style='height:27.0pt;width:76pt; padding-left: 5px'> Одержувач</td>
             <td colspan=3 class=xl131 width=241 style='width:181pt'>ТОВАРИСТВО З
                 ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ &quot;ХЕНДІКАРС&quot;</td>
             <td class=xl76></td>
@@ -942,7 +942,7 @@ function morph($n, $f1, $f2, $f5) {
         </tr>
         <tr height=15 style='mso-height-source:userset;height:11.0pt'>
             <td colspan=2 rowspan=2 height=34 class=xl81 width=101 style='height:25.0pt;
-  width:76pt'>Код</td>
+  width:76pt; padding-left: 5px'>Код</td>
             <td rowspan=2 class=xl82 style='border-bottom:1.0pt solid black'>40109571</td>
             <td class=xl76></td>
             <td class=xl76></td>
@@ -957,7 +957,7 @@ function morph($n, $f1, $f2, $f5) {
   border-bottom:1.0pt solid black'>UA073052990000026004016807229</td>
         </tr>
         <tr height=19 style='mso-height-source:userset;height:14.0pt'>
-            <td colspan=3 height=19 class=xl79 style='height:14.0pt'>Банк одержувача</td>
+            <td colspan=3 height=19 class=xl79 style='height:14.0pt; padding-left: 5px'>Банк одержувача</td>
             <td class=xl76></td>
             <td class=xl88>Код банку</td>
             <td class=xl76></td>
@@ -974,7 +974,7 @@ function morph($n, $f1, $f2, $f5) {
             <td class=xl69 style='border-top:none'>&nbsp;</td>
         </tr>
         <tr height=19 style='mso-height-source:userset;height:14.0pt'>
-            <td colspan=3 height=19 class=xl93 width=268 style='height:14.0pt;width:201pt'>ПАТ
+            <td colspan=3 height=19 class=xl93 width=268 style='height:14.0pt;width:201pt; padding-left: 5px'>ПАТ
                 КБ &quot;ПРИВАТБАНК&quot;</td>
             <td class=xl65></td>
             <td class=xl76></td>
@@ -1129,12 +1129,12 @@ function morph($n, $f1, $f2, $f5) {
             <tr height=16 style='mso-height-source:userset;height:12.0pt'>
                 <td height=16 class=xl106 style='height:12.0pt'><?= $i ?></td>
                 <td colspan=4 class=xl107 width=301 style='border-right:.5pt solid black;
-  width:226pt'><?= $item->products->name ?></td>
+  width:226pt; padding-left: 5px'><?= $item->products->name ?></td>
                 <td colspan=2 class=xl110 style='border-right:.5pt solid black;border-left:
   none'><?= number_format($item->quantity, 1, ',', ' ') ?></td>
                 <td class=xl112 style='border-top:none;border-left:none'>шт</td>
-                <td class=xl113 align=right><?= number_format($item->price, 2, ',', ' ') ?></td>
-                <td class=xl114 align=right><?= number_format($item->price * $item->quantity, 2, ',', ' ') ?></td>
+                <td class=xl113 align=right style="padding-right: 5px"><?= number_format($item->price, 2, ',', ' ') ?></td>
+                <td class=xl114 align=right style="padding-right: 5px"><?= number_format($item->price * $item->quantity, 2, ',', ' ') ?></td>
             </tr>
             <?php $i++ ?>
         <?php } ?>
