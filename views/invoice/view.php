@@ -106,6 +106,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="card-header">
             <h2 class="card-title"><?= Yii::t('app', 'Документи') ?></h2>
         </div>
+        <div class="card-header">
 <!--        <div class="direct-chat-messages" style="height: 100%;">-->
             <?php $form = \yii\widgets\ActiveForm::begin(); ?>
             <?php if (!empty($model->attachments) && !empty($model->id)): ?>
@@ -168,7 +169,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 ]); ?>
             <?php endif; ?>
             <?php \yii\widgets\ActiveForm::end(); ?>
-<!--        </div>-->
+        </div>
     </div>
 </div>
 
