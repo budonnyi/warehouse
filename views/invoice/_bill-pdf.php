@@ -1198,6 +1198,12 @@ function morph($n, $f1, $f2, $f5) {
         <tr height=17 style='mso-height-source:userset;height:13.0pt'>
             <td colspan=10 height=17 class=xl101 style='height:13.0pt'>Без ПДВ</td>
         </tr>
+        <tr height=17 style='mso-height-source:userset;height:13.0pt'>
+            <td colspan=10 height=17 class=xl101 style='height:13.0pt'></td>
+        </tr>
+        <tr height=17 style='mso-height-source:userset;height:18.0pt'>
+            <td colspan=10 height=17 class=xl101 style='height:13.0pt'>Рахунок дійсний до оплати протягом 7 днів банківських днів від дати виписки. Датою платежу вважається дата надходження коштів на поточний рахунок. </td>
+        </tr>
         <tr height=16 style='mso-height-source:userset;height:12.0pt'>
             <td height=16 class=xl102 style='height:12.0pt'>&nbsp;</td>
             <td class=xl102>&nbsp;</td>
