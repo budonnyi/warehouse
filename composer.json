@@ -20,7 +20,13 @@
         "yiisoft/yii2-symfonymailer": "~2.0.3",
         "kartik-v/yii2-widget-datepicker": "@dev",
         "kartik-v/yii2-date-range": "dev-master",
-        "yiisoft/yii2-bootstrap4": "^2.0"
+        "mpdf/mpdf": "dev-master",
+        "yiisoft/yii2-bootstrap4": "^2.0",
+        "mihaildev/yii2-ckeditor": "*",
+        "mihaildev/yii2-elfinder": "*",
+        "yiisoft/yii2-imagine": "^2.3",
+        "kartik-v/yii2-widget-select2": "dev-master",
+        "kartik-v/yii2-widget-fileinput": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
@@ -33,7 +39,8 @@
         "codeception/module-yii2": "^1.1",
         "codeception/module-filesystem": "^3.0 || ^2.0 || ^1.1",
         "codeception/verify": "^3.0 || ^2.2",
-        "symfony/browser-kit": "^6.0 || >=2.7 <=4.2.4"
+        "symfony/browser-kit": "^6.0 || >=2.7 <=4.2.4",
+        "symfony/var-dumper": "^5.4"
     },
     "config": {
         "allow-plugins": {
