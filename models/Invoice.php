@@ -10,8 +10,11 @@ use yii\db\ActiveRecord;
  * This is the model class for table "invoice".
  *
  * @property int $id
+ * @property string|null $order_num
+ * @property string|null $order_date
  * @property string|null $invoice
  * @property string|null $date
+ * @property string|null $date_customs
  * @property string|null $bill
  * @property string|null $bill_date
  * @property string|null $contract
@@ -36,6 +39,11 @@ class Invoice extends \yii\db\ActiveRecord
 {
     public $newCustomer;
 
+    public $customsexpances;
+
+    public $total_sek_amount;
+    public $total_sek_goods_amount;
+
     /**
      * {@inheritdoc}
      */
@@ -50,9 +58,10 @@ class Invoice extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['date', 'bill_date', 'contract_date'], 'safe'],
+            [['order_num', 'order_date', 'date', 'date_customs', 'bill_date', 'contract_date', 'newCustomer', 'customsexpances', 'total_sek_amount', 'through', 'total_sek_amount', 'total_sek_goods_amount'], 'safe'],
             [['customer_id', 'quantity', 'status', 'created_at', 'updated_at'], 'integer'],
-            [['total_amount', 'total_amount_sek', 'sek_rate', 'custom_taxes', 'transport_fee', 'brocker_fee', 'additional_cost'], 'number'],
+            ['status', 'required'],
+            [['total_amount', 'total_amount_sek', 'sek_rate', 'custom_taxes', 'transport_fee', 'brocker_fee', 'additional_cost', 'bank_fee'], 'number'],
             [['invoice', 'document_type'], 'string', 'max' => 20],
             [['bill', 'contract'], 'string', 'max' => 30],
             [['store'], 'string', 'max' => 10],
@@ -81,13 +90,17 @@ class Invoice extends \yii\db\ActiveRecord
     {
         return [
             'id'                => Yii::t('app', 'Індекс'),
+            'order_num'         => Yii::t('app', 'Замовленя'),
+            'order_date'        => Yii::t('app', 'Дата замовлення'),
             'invoice'           => Yii::t('app', 'Накладна'),
             'date'              => Yii::t('app', 'Дата'),
+            'date_customs'      => Yii::t('app', 'Дата оформленя'),
             'bill'              => Yii::t('app', 'Рахунок'),
             'bill_date'         => Yii::t('app', 'Дата рахунку'),
             'contract'          => Yii::t('app', 'Контракт'),
             'contract_date'     => Yii::t('app', 'Дата контракту'),
             'customer_id'       => Yii::t('app', 'Покупець'),
+            'through'           => Yii::t('app', 'Через'),
             'newCustomer'       => Yii::t('app', 'Новий покупець'),
             'quantity'          => Yii::t('app', 'Кількість'),
             'total_amount'      => Yii::t('app', 'Вартість грн'),
@@ -97,13 +110,22 @@ class Invoice extends \yii\db\ActiveRecord
             'comment'           => Yii::t('app', 'Коментар'),
             'sek_rate'          => Yii::t('app', 'Курс Sek'),
             'custom_taxes'      => Yii::t('app', 'Митні платежі'),
-            'transport_fee'     => Yii::t('app', 'Транспортe'),
+            'transport_fee'     => Yii::t('app', 'Транспортні витрати'),
+            'bank_fee'          => Yii::t('app', 'Комісія банку'),
             'brocker_fee'       => Yii::t('app', 'Брокар'),
-            'additional_cost'   => Yii::t('app', 'AДодаткова варість'),
+            'additional_cost'   => Yii::t('app', 'Додаткова вартість'),
             'status'            => Yii::t('app', 'Статус'),
             'created_at'        => Yii::t('app', 'Created At'),
             'updated_at'        => Yii::t('app', 'Updated At'),
         ];
+    }
+
+    public function beforeSave($insert) {
+        $this->date = !empty($this->date) ? date('Y-m-d', strtotime($this->date)) : null;
+        $this->date_customs = !empty($this->date_customs) ? date('Y-m-d', strtotime($this->date_customs)) : null;
+        $this->bill_date = !empty($this->bill_date) ? date('Y-m-d', strtotime($this->bill_date)) : null;
+        $this->contract_date = !empty($this->contract_date) ? date('Y-m-d', strtotime($this->contract_date)) : null;
+        return parent::beforeSave($insert);
     }
 
     public function getProducts()
@@ -119,5 +141,15 @@ class Invoice extends \yii\db\ActiveRecord
     public function getItems()
     {
         return $this->hasMany(InvoiceItem::className(), ['invoice_id' => 'id']);
+    }
+
+    public function getPayments()
+    {
+        return $this->hasMany(Payment::className(), ['invoice_id' => 'id']);
+    }
+
+    public function getAttachments()
+    {
+        return $this->hasMany(Attachment::className(), ['entity_id' => 'id'])->andWhere(['entity_type' => Attachment::INVOICE]);
     }
 }
