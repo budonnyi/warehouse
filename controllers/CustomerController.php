@@ -35,7 +35,7 @@ class CustomerController extends Controller
                 'rules' => [
                     [
                         'actions' => ['index', 'create', 'update', 'view',
-                            'delete'],
+                            'delete', 'bulk-update'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -182,6 +182,25 @@ class CustomerController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    public function actionBulkUpdate()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $data   = Yii::$app->request->post('Customer', []);
+        $saved  = 0;
+        $errors = [];
+        foreach ($data as $id => $attributes) {
+            $model = Customer::findOne((int)$id);
+            if (!$model) continue;
+            $model->setAttributes($attributes);
+            if ($model->save()) {
+                $saved++;
+            } else {
+                $errors[$id] = $model->errors;
+            }
+        }
+        return ['saved' => $saved, 'errors' => $errors];
     }
 
     /**

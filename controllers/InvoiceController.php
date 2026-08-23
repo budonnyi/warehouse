@@ -434,8 +434,8 @@ class InvoiceController extends Controller
                         continue;
                     }
 
-                    if (!empty($itemModel->articul)) {
-                        $productModel->articul = !empty($itemModel->articul) ? $itemModel->articul : ($productModel->articul ?? '');
+                    if (!empty($item['articul'])) {
+                        $productModel->articul = $item['articul'];
                     }
 
                     $productModel->save(false);
@@ -566,8 +566,8 @@ class InvoiceController extends Controller
                         continue;
                     }
 
-                    if (!empty($itemModel->articul)) {
-                        $productModel->articul = !empty($itemModel->articul) ? $itemModel->articul : ($productModel->articul ?? '');
+                    if (!empty($item['articul'])) {
+                        $productModel->articul = $item['articul'];
                     }
 
                     $productModel->save(false);

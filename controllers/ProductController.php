@@ -30,7 +30,7 @@ class ProductController extends Controller
                 'rules' => [
                     [
                         'actions' => ['index', 'create', 'update', 'view',
-                            'delete'],
+                            'delete', 'bulk-update'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -69,6 +69,31 @@ class ProductController extends Controller
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
+    }
+
+    /**
+     * Bulk-saves changed products (AJAX, JSON response).
+     */
+    public function actionBulkUpdate()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        $data   = Yii::$app->request->post('Product', []);
+        $saved  = 0;
+        $errors = [];
+
+        foreach ($data as $id => $attributes) {
+            $model = Product::findOne((int)$id);
+            if (!$model) continue;
+            $model->setAttributes($attributes);
+            if ($model->save()) {
+                $saved++;
+            } else {
+                $errors[$id] = $model->errors;
+            }
+        }
+
+        return ['saved' => $saved, 'errors' => $errors];
     }
 
     /**
@@ -139,7 +164,30 @@ class ProductController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+
+        $invoiceIds = InvoiceItem::find()
+            ->select('invoice_id')
+            ->where(['product_id' => (int)$id])
+            ->distinct()
+            ->column();
+
+        if (!empty($invoiceIds)) {
+            $invoices = Invoice::find()
+                ->select(['id', 'order_num', 'date'])
+                ->where(['id' => $invoiceIds])
+                ->asArray()
+                ->all();
+
+            Yii::$app->session->setFlash('productDeleteBlocked', [
+                'name'     => $model->name ?: ($model->articul ?: "ID {$model->id}"),
+                'invoices' => $invoices,
+            ]);
+
+            return $this->redirect(['index']);
+        }
+
+        $model->delete();
 
         return $this->redirect(['index']);
     }
