@@ -2,6 +2,9 @@
 
 namespace app\controllers;
 
+use app\models\Invoice;
+use app\models\InvoiceItem;
+use app\models\InvoiceSearch;
 use Yii;
 use app\models\Product;
 use app\models\ProductSearch;
@@ -23,9 +26,11 @@ class ProductController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
+//                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'view', 'edit', 'delete', 'create', 'update'],
+                        'actions' => ['index', 'create', 'update', 'view',
+                            'delete'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -33,6 +38,11 @@ class ProductController extends Controller
                         'actions' => ['login'],
                         'allow' => true,
                         'roles' => ['?'],
+                    ],
+                    [
+                        'actions' => ['error'],
+                        'allow' => true,
+                        'roles' => ["?", "@"],
                     ],
                 ],
             ],
@@ -53,6 +63,7 @@ class ProductController extends Controller
     {
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+//        $dataProvider->query->andWhere(['service' => null]);
 
         return $this->render('index', [
             'searchModel' => $searchModel,
@@ -68,8 +79,16 @@ class ProductController extends Controller
      */
     public function actionView($id)
     {
+        $models = InvoiceItem::find()->where(['product_id' => $id])->joinWith(['invoices'])->orderBy(['invoice.date' => SORT_DESC])->all(); // ->orderBy(['invoice.date' => SORT_DESC])
+
+//        foreach ($models as $model) {
+//            echo '<pre>';
+//            print_r($model->invoices);
+//            die;
+//        }
         return $this->render('view', [
             'model' => $this->findModel($id),
+            'models' => $models
         ]);
     }
 

@@ -12,6 +12,8 @@ use yii\db\ActiveRecord;
  * @property int $id
  * @property string|null $articul
  * @property string|null $name
+ * @property float|null $price
+ * @property string|null $name_invoice
  * @property string|null $category_id
  * @property int $status
  * @property int|null $created_at
@@ -34,10 +36,11 @@ class Product extends ActiveRecord
     {
         return [
             [['status', 'created_at', 'updated_at'], 'integer'],
+            [['price'], 'number'],
             [['articul'], 'string', 'max' => 15],
-            [['name', 'category_id'], 'string', 'max' => 255],
+            [['name', 'name_invoice', 'category_id'], 'string', 'max' => 255],
             [['name'], 'unique'],
-            [['name', 'category_id'], 'required'],
+//            [['name'], 'required'],
         ];
     }
 
@@ -64,6 +67,7 @@ class Product extends ActiveRecord
             'id'            => 'Індекс',
             'articul'       => 'Артикул',
             'name'          => 'Назва',
+            'name_invoice'  => 'Назва в інвойсі',
             'category_id'   => 'Категорія',
             'status'        => 'Статус',
             'created_at'    => 'Created At',
@@ -74,5 +78,10 @@ class Product extends ActiveRecord
     public function getCategory()
     {
         return $this->hasOne(Category::className(), ['id' => 'category_id']);
+    }
+
+    public function getAttachments()
+    {
+        return $this->hasMany(Attachment::className(), ['entity_id' => 'id'])->andWhere(['entity_type' => Attachment::PRODUCT]);
     }
 }

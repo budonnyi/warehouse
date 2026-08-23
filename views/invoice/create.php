@@ -10,16 +10,25 @@ $this->params['breadcrumbs'][] = ['label' => 'Invoices', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<div class="content-wrapper">
-    <section class="content">
-        <div class="container-fluid">
-            <h1><?= Html::encode($this->title) ?></h1>
+<h1><?= Html::encode($this->title) ?></h1>
 
-            <?= $this->render('_form', [
-                'invoiceModel' => $invoiceModel,
-                'itemModels' => $itemModels,
-                'count' => $count ?? 0
-            ]) ?>
-        </div>
-    </section>
-</div>
+<?php if ($invoiceModel->document_type == 'import') { ?>
+    <?= $this->render('_form_import', [
+        'invoiceModel' => $invoiceModel,
+        'itemModels' => $itemModels,
+        'count' => $count,
+    ]) ?>
+<?php } else if($invoiceModel->document_type == 'order') { ?>
+    <?= $this->render('_order_form', [
+        'invoiceModel' => $invoiceModel,
+        'itemModels' => $itemModels,
+        'paymentModels' => $paymentModels,
+        'count' => $count,
+    ]) ?>
+<?php } else { ?>
+    <?= $this->render('_form', [
+        'invoiceModel' => $invoiceModel,
+        'itemModels' => $itemModels,
+        'count' => $count,
+    ]) ?>
+<?php } ?>

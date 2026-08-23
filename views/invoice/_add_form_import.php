@@ -1,20 +1,16 @@
 <?php
 
 use \yii\helpers\Html;
-//use kartik\select2\Select2;
-use yii\helpers\ArrayHelper;
-use app\models\Product;
-
-$productArr = Product::find()->orderBy(['name' => SORT_ASC])->all();
 
 ?>
 
-<tr data-id="<?= $cnt ?>">
+<tr data-id="<?= $cnt ?>" class="<?= $service ? 'service' : '' ?>">
 
     <input type="hidden" id="invoiceitem-<?= $cnt ?>-id" class="form-control" value="<?= $cnt ?>" name="InvoiceItem[<?= $cnt ?>][id]">
+    <input type="hidden" id="invoiceitem-<?= $cnt ?>-service" class="form-control" value="<?= $service ?>" name="InvoiceItem[<?= $cnt ?>][service]">
     <td>
         <div class="form-group field-invoiceitem-<?= $cnt ?>-articul">
-            <input type="text" id="invoiceitem-<?= $cnt ?>-articul" class="form-control articul-field"
+            <input type="text" id="invoiceitem-<?= $cnt ?>-articul" class="form-control articul"
                    name="InvoiceItem[<?= $cnt ?>][articul]">
             <div class="help-block"></div>
         </div>
@@ -22,7 +18,7 @@ $productArr = Product::find()->orderBy(['name' => SORT_ASC])->all();
     <td>
         <div class="form-group field-invoiceitem-<?= $cnt ?>-product_id required">
             <?= Html::dropDownList("InvoiceItem[$cnt][product_id]", null,
-                \yii\helpers\ArrayHelper::map($productArr, 'id', 'name'),
+                \yii\helpers\ArrayHelper::map(\app\models\Product::find()->orderBy(['name' => SORT_ASC])->all(), 'id', 'name'),
                 ['prompt' => 'Select the product', 'class' => 'form-control product-id select2bs4', 'style'=>"width: 100%;"]
             ) ?>
         </div>
@@ -36,15 +32,29 @@ $productArr = Product::find()->orderBy(['name' => SORT_ASC])->all();
     </td>
     <td>
         <div class="form-group field-invoiceitem-<?= $cnt ?>-quantity required">
-            <input type="text" id="invoiceitem-<?= $cnt ?>-quantity" class="form-control quantity-field"
+            <input type="text" id="invoiceitem-<?= $cnt ?>-quantity" class="form-control quantity"
                    name="InvoiceItem[<?= $cnt ?>][quantity]" aria-required="true">
             <div class="help-block"></div>
         </div>
     </td>
     <td>
-        <div class="form-group field-invoiceitem-<?= $cnt ?>-price">
-            <input type="text" id="invoiceitem-<?= $cnt ?>-price" class="form-control price-field"
-                   name="InvoiceItem[<?= $cnt ?>][price]">
+        <div class="form-group field-invoiceitem-<?= $cnt ?>-price_sek">
+            <input type="text" id="invoiceitem-<?= $cnt ?>-price_sek" class="form-control price_sek"
+                   name="InvoiceItem[<?= $cnt ?>][price_sek]">
+            <div class="help-block"></div>
+        </div>
+    </td>
+    <td>
+        <div class="form-group field-invoiceitem-<?= $cnt ?>-surcharge_sek">
+            <input type="text" id="invoiceitem-<?= $cnt ?>-surcharge_sek" class="form-control surcharge_sek"
+                   name="InvoiceItem[<?= $cnt ?>][surcharge_sek]">
+            <div class="help-block"></div>
+        </div>
+    </td>
+    <td>
+        <div class="form-group field-invoiceitem-<?= $cnt ?>-total_sek">
+            <input type="text" id="invoiceitem-<?= $cnt ?>-total_sek" class="form-control total_sek"
+                   name="InvoiceItem[<?= $cnt ?>][total_sek]">
             <div class="help-block"></div>
         </div>
     </td>

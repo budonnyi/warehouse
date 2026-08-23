@@ -63,15 +63,30 @@ class Customer extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
+            'name' => 'Назва',
             'email' => 'Email',
-            'phone' => 'Phone',
-            'address' => 'Address',
-            'type' => 'Type',
-            'comment' => 'Comment',
-            'status' => 'Status',
+            'phone' => 'Телефон',
+            'address' => 'Адреса',
+            'type' => 'Тип',
+            'comment' => 'Коментар',
+            'status' => 'Статус',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
+    }
+
+    public function getCustomersStaffs()
+    {
+        return $this->hasMany(CustomersStaff::className(), ['customer_id' => 'id']);
+    }
+
+    public function getPayments()
+    {
+        return $this->hasMany(Payment::className(), ['customer_id' => 'id']);
+    }
+
+    public function getAttachments()
+    {
+        return $this->hasMany(Attachment::className(), ['entity_id' => 'id'])->andWhere(['entity_type' => Attachment::CUSTOMER]);
     }
 }

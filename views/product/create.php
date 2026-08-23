@@ -10,16 +10,8 @@ $this->params['breadcrumbs'][] = ['label' => 'Продукція', 'url' => ['in
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<div class="content-wrapper">
-    <section class="content">
-        <div class="container-fluid">
+<h1><?= Html::encode($this->title) ?></h1>
 
-            <h1><?= Html::encode($this->title) ?></h1>
-
-            <?= $this->render('_form', [
-                'model' => $model,
-            ]) ?>
-
-        </div>
-    </section>
-</div>
+<?= $this->render('_form', [
+    'model' => $model,
+]) ?>

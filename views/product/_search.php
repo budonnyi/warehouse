@@ -18,6 +18,7 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'articul') ?>
 
     <?= $form->field($model, 'name') ?>
+    <?= $form->field($model, 'name_invoice') ?>
 
     <?= $form->field($model, 'category_id') ?>
 

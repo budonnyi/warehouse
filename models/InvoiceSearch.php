@@ -18,7 +18,7 @@ class InvoiceSearch extends Invoice
     {
         return [
             [['id', 'customer_id', 'quantity', 'status', 'created_at', 'updated_at'], 'integer'],
-            [['invoice', 'date', 'bill', 'bill_date', 'contract', 'contract_date', 'document_type', 'store', 'comment'], 'safe'],
+            [['invoice', 'date', 'bill', 'bill_date', 'total_amount', 'total_amount_sek', 'customer_id', 'contract', 'contract_date', 'document_type', 'store', 'comment'], 'safe'],
             [['total_amount', 'total_amount_sek', 'sek_rate', 'custom_taxes', 'transport_fee', 'brocker_fee', 'additional_cost'], 'number'],
         ];
     }
@@ -41,7 +41,7 @@ class InvoiceSearch extends Invoice
      */
     public function search($params)
     {
-        $query = Invoice::find();
+        $query = Invoice::find(); //->with('items');
 
         // add conditions that should always apply here
 
