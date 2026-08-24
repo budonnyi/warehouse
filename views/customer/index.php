@@ -51,6 +51,9 @@ $customerTypes = Yii::$app->params['customerTypes'] ?? ['customer' => 'Поку�
 .inv-act-view:hover{color:#2563eb;border-color:#2563eb;}
 .inv-act-edit:hover{color:#16a34a;border-color:#16a34a;}
 .inv-act-del:hover{color:#dc2626;border-color:#dc2626;}
+.ef-html-cell{font-size:12px;line-height:1.5;max-width:220px;word-break:break-word;}
+.ef-html-cell p{margin:0 0 4px;}
+.ef-html-cell p:last-child{margin:0;}
 </style>
 
 <div class="ef-wrap">
@@ -117,16 +120,14 @@ $customerTypes = Yii::$app->params['customerTypes'] ?? ['customer' => 'Поку�
                                    value="<?= Html::encode($record->email) ?>"></td>
                         <td><input class="form-control" name="Customer[<?= $record->id ?>][phone]"
                                    value="<?= Html::encode($record->phone) ?>"></td>
-                        <td><input class="form-control" name="Customer[<?= $record->id ?>][address]"
-                                   value="<?= Html::encode($record->address) ?>"></td>
+                        <td><div class="ef-html-cell"><?= $record->address ?></div></td>
                         <td><?= Html::dropDownList(
                             "Customer[{$record->id}][type]",
                             $record->type,
                             $customerTypes,
                             ['prompt' => '—', 'class' => 'form-control']
                         ) ?></td>
-                        <td><input class="form-control" name="Customer[<?= $record->id ?>][comment]"
-                                   value="<?= Html::encode($record->comment) ?>"></td>
+                        <td><div class="ef-html-cell"><?= $record->comment ?></div></td>
                         <td><?= Html::dropDownList(
                             "Customer[{$record->id}][status]",
                             $record->status,

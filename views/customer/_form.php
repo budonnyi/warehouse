@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use mihaildev\ckeditor\CKEditor;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Customer */
@@ -31,10 +32,14 @@ use yii\widgets\ActiveForm;
 
     <div class="row">
         <div class="col-md-6">
-            <?= $form->field($model, 'address')->textarea(['rows' => 6]) ?>
+            <?= $form->field($model, 'address')->widget(CKEditor::class, [
+                'editorOptions' => ['preset' => 'basic'],
+            ]) ?>
         </div>
         <div class="col-md-6">
-            <?= $form->field($model, 'comment')->textarea(['rows' => 6]) ?>
+            <?= $form->field($model, 'comment')->widget(CKEditor::class, [
+                'editorOptions' => ['preset' => 'basic'],
+            ]) ?>
         </div>
     </div>
 
