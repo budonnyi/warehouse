@@ -87,7 +87,8 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?php $totalAmount = 0; ?>
                 <?php foreach ($models as $item) { ?>
                     <tr>
-                        <td><?= date('d-m-Y', strtotime($item->invoices->document_type == 'bill' ? $item->invoices->bill_date : $item->invoices->date)) ?? '---' ?></td>
+                        <?php $dateVal = $item->invoices->document_type == 'bill' ? $item->invoices->bill_date : $item->invoices->date; ?>
+                        <td><?= $dateVal ? date('d-m-Y', strtotime($dateVal)) : '---' ?></td>
                         <td>
                             <a href="<?= \yii\helpers\Url::to(['invoice/view', 'id' => $item->invoice_id]) ?>">
                                 <?= $item->invoices->document_type == 'bill' ? $item->invoices->bill : $item->invoices->invoice ?></a>

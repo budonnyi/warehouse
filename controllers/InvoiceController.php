@@ -229,17 +229,21 @@ class InvoiceController extends Controller
     {
         $storeItems = [];
 
-        $productsArray = ArrayHelper::map(Product::find()->all(), 'id', 'name');
+        $allProducts   = Product::find()->all();
+        $productsArray = ArrayHelper::map($allProducts, 'id', 'name');
+        $productPrices = ArrayHelper::map($allProducts, 'id', 'price');
 // where(['invoice.status' => 1])->
         $invoiceItems = InvoiceItem::find()->joinWith(['invoices'])->orderBy(['invoice.date' => SORT_DESC])->all();
 
         foreach ($invoiceItems as $item) {
             if (!$item->service) {
                 @$storeItems[$item->product_id]['product_name'] = $productsArray[$item->product_id];
+                @$storeItems[$item->product_id]['sale_price']   = $productPrices[$item->product_id] ?? 0;
                 if (in_array($item->invoices->document_type, ['income', 'import'])) {
                     if ($item->invoices->status == 1) {
                         @$storeItems[$item->product_id]['onStoreQuantity'] += $item->quantity ?? 0;
                         @$storeItems[$item->product_id]['income'] += $item->quantity;
+                        @$storeItems[$item->product_id]['income_cost'] += ($item->price ?? 0) * ($item->quantity ?? 0);
                     } else {
                         @$storeItems[$item->product_id]['orderedQuantity'] += $item->quantity ?? 0;
 //                        @$storeItems[$item->product_id]['income'] += $item->quantity;
@@ -247,17 +251,29 @@ class InvoiceController extends Controller
                 } else if ($item->invoices->document_type == 'sale' && $item->invoices->status == 1) {
                     @$storeItems[$item->product_id]['onStoreQuantity'] -= $item->quantity ?? 0;
                     @$storeItems[$item->product_id]['sold'] += $item->quantity;
+                    @$storeItems[$item->product_id]['sold_qty'] += $item->quantity ?? 0;
                     @$storeItems[$item->product_id]['profit'] += $item->price * $item->quantity;
                 } else if ($item->invoices->document_type == 'bill' && $item->invoices->status !== 3 && $item->invoices->status !== 0) {
                     @$storeItems[$item->product_id]['billedQuantity'] += $item->quantity;
                     @$storeItems[$item->product_id]['sold'] -= $item->quantity;
                 }
-                
+
                 if (in_array($item->invoices->document_type, ['sale', 'bill']) && $item->invoices->status == 3) {
                     @$storeItems[$item->product_id]['payed'] += $item->quantity;
                 }
             }
         }
+
+        foreach ($storeItems as &$si) {
+            $incomeQty  = $si['income'] ?? 0;
+            $incomeCost = $si['income_cost'] ?? 0;
+            $avgCost    = $incomeQty > 0 ? $incomeCost / $incomeQty : 0;
+            $stockQty   = max(0, $si['onStoreQuantity'] ?? 0);
+            $si['stock_value']      = $stockQty * $avgCost;
+            $si['stock_value_sale'] = $stockQty * ($si['sale_price'] ?? 0);
+            $si['real_profit']      = ($si['profit'] ?? 0) - (($si['sold_qty'] ?? 0) * $avgCost);
+        }
+        unset($si);
 
         ksort($storeItems);
 

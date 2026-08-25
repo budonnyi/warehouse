@@ -95,6 +95,7 @@ $this->registerCss('
 .store-num-sold{color:#dc2626;}
 .store-num-income{color:#16a34a;}
 .store-num-profit{color:#7c3aed;}
+.store-num-stock-val{color:#0891b2;}
 
 /* ─── Qty badge ─── */
 .store-badge{
@@ -117,6 +118,7 @@ $this->registerCss('
 .store-money-income{color:#16a34a;}
 .store-money-profit-pos{color:#7c3aed;}
 .store-money-profit-neg{color:#dc2626;}
+.store-money-stock-val{color:#0891b2;}
 ');
 ?>
 
@@ -141,18 +143,27 @@ $this->registerCss('
                             <th style="width:90px;text-align:center"><?= Yii::t('app', 'Рахунки') ?></th>
                             <th style="width:100px;text-align:right"><?= Yii::t('app', 'Продали') ?></th>
                             <th style="width:100px;text-align:right"><?= Yii::t('app', 'Купили') ?></th>
+                            <th style="width:120px;text-align:right"><?= Yii::t('app', 'Виручка') ?></th>
+                            <th style="width:130px;text-align:right"><?= Yii::t('app', 'Залишок (закупка)') ?></th>
+                            <th style="width:130px;text-align:right"><?= Yii::t('app', 'Залишок (реалізація)') ?></th>
                             <th style="width:110px;text-align:right"><?= Yii::t('app', 'Прибуток') ?></th>
                         </tr>
                     </thead>
                     <tbody>
+                    <?php
+                        $totals = ['profit' => 0, 'stock_value' => 0, 'stock_value_sale' => 0, 'real_profit' => 0];
+                    ?>
                     <?php if (!empty($storeItems)) { ?>
                         <?php foreach ($storeItems as $productId => $storeItem) { ?>
                             <?php if (!empty($storeItem['onStoreQuantity']) || !empty($storeItem['orderedQuantity'])) { ?>
                                 <?php
                                     $profit = $storeItem['profit'] ?? 0;
-                                    $profitClass = $profit >= 0 ? 'store-money-profit-pos' : 'store-money-profit-neg';
                                     $stock = (int)($storeItem['onStoreQuantity'] ?? 0);
                                     $ordered = (int)($storeItem['orderedQuantity'] ?? 0);
+                                    $totals['profit']           += $profit;
+                                    $totals['stock_value']      += $storeItem['stock_value'] ?? 0;
+                                    $totals['stock_value_sale'] += $storeItem['stock_value_sale'] ?? 0;
+                                    $totals['real_profit']      += $storeItem['real_profit'] ?? 0;
                                 ?>
                                 <tr>
                                     <td><span class="store-id"><?= $productId ?></span></td>
@@ -215,7 +226,32 @@ $this->registerCss('
                                     </td>
                                     <td style="text-align:right">
                                         <?php if ($profit): ?>
-                                            <span class="store-money <?= $profitClass ?>"><?= number_format((float)$profit, 2, '.', ' ') ?></span>
+                                            <span class="store-money store-money-sold"><?= number_format((float)$profit, 2, '.', ' ') ?></span>
+                                        <?php else: ?>
+                                            <span style="color:#94a3b8">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align:right">
+                                        <?php $stockVal = $storeItem['stock_value'] ?? 0; ?>
+                                        <?php if ($stockVal > 0): ?>
+                                            <span class="store-money store-money-stock-val"><?= number_format((float)$stockVal, 2, '.', ' ') ?></span>
+                                        <?php else: ?>
+                                            <span style="color:#94a3b8">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align:right">
+                                        <?php $stockValSale = $storeItem['stock_value_sale'] ?? 0; ?>
+                                        <?php if ($stockValSale > 0): ?>
+                                            <span class="store-money" style="color:#7c3aed"><?= number_format((float)$stockValSale, 2, '.', ' ') ?></span>
+                                        <?php else: ?>
+                                            <span style="color:#94a3b8">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align:right">
+                                        <?php $realProfit = $storeItem['real_profit'] ?? 0; ?>
+                                        <?php $realProfitClass = $realProfit >= 0 ? 'store-money-profit-pos' : 'store-money-profit-neg'; ?>
+                                        <?php if ($realProfit): ?>
+                                            <span class="store-money <?= $realProfitClass ?>"><?= number_format((float)$realProfit, 2, '.', ' ') ?></span>
                                         <?php else: ?>
                                             <span style="color:#94a3b8">—</span>
                                         <?php endif; ?>
@@ -225,6 +261,24 @@ $this->registerCss('
                         <?php } ?>
                     <?php } ?>
                     </tbody>
+                    <tfoot>
+                        <tr style="background:#f1f5f9;font-weight:700;border-top:2px solid #cbd5e1;">
+                            <td colspan="8" style="padding:10px 12px;font-size:12px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Разом</td>
+                            <td style="text-align:right;padding:10px 12px">
+                                <span class="store-money store-money-sold"><?= number_format($totals['profit'], 2, '.', ' ') ?></span>
+                            </td>
+                            <td style="text-align:right;padding:10px 12px">
+                                <span class="store-money store-money-stock-val"><?= number_format($totals['stock_value'], 2, '.', ' ') ?></span>
+                            </td>
+                            <td style="text-align:right;padding:10px 12px">
+                                <span class="store-money" style="color:#7c3aed"><?= number_format($totals['stock_value_sale'], 2, '.', ' ') ?></span>
+                            </td>
+                            <td style="text-align:right;padding:10px 12px">
+                                <?php $totalProfitClass = $totals['real_profit'] >= 0 ? 'store-money-profit-pos' : 'store-money-profit-neg'; ?>
+                                <span class="store-money <?= $totalProfitClass ?>"><?= number_format($totals['real_profit'], 2, '.', ' ') ?></span>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 

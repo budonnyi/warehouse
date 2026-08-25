@@ -316,7 +316,7 @@ $this->title = 'Warehouse Application';
                                 'label' => 'Дата рахунку',
                                 'headerOptions' => ['style' => 'text-align:center', 'width' => '6%'],
                                 'value' => function ($data) {
-                                    return date('d.m.Y', strtotime($data->bill_date));
+                                    return $data->bill_date ? date('d.m.Y', strtotime($data->bill_date)) : '';
                                 }
                             ],
                             [
