@@ -159,8 +159,90 @@ class SiteController extends Controller
             }
         }
         ksort($graph);
-//echo '<pre>';var_dump($graph);exit;
-        return $this->render('index', compact('result', 'filter', 'dataProvider', 'billsProvider', 'searchModel', 'graph'));
+
+        // === YoY comparison (3 роки для сезонності) ===
+        $currentYear  = (int)date('Y');
+        $prevYear     = $currentYear - 1;
+        $prevPrevYear = $currentYear - 2;
+        $months       = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+        $yoyData = [
+            $currentYear  => array_fill_keys($months, 0),
+            $prevYear     => array_fill_keys($months, 0),
+            $prevPrevYear => array_fill_keys($months, 0),
+        ];
+        $yoyInvoices = Invoice::find()
+            ->where(['document_type' => 'sale'])
+            ->andWhere(['between', 'date', $prevPrevYear . '-01-01', $currentYear . '-12-31'])
+            ->all();
+        foreach ($yoyInvoices as $yoyInv) {
+            $y = (int)date('Y', strtotime($yoyInv->date));
+            $m = date('m', strtotime($yoyInv->date));
+            if (isset($yoyData[$y][$m])) {
+                $yoyData[$y][$m] += $yoyInv->total_amount;
+            }
+        }
+
+        // === Status distribution + funnel from active deals ===
+        $statusNames = [
+            2 => 'Очікує оплати', 3 => 'Оплачений не відпр.', 4 => 'Очікує відправлення',
+            5 => 'Відправлено не опл.', 6 => 'В дорозі', 7 => 'Митне оформлення', 9 => 'Нове замовлення',
+        ];
+        $activeInvoices = Invoice::find()->where(['status' => [2, 3, 4, 5, 6, 7, 9]])->all();
+        $statusDistrib = [];
+        foreach ($statusNames as $s => $label) {
+            $statusDistrib[$s] = ['label' => $label, 'count' => 0, 'amount' => 0];
+        }
+        foreach ($activeInvoices as $inv) {
+            if (isset($statusDistrib[$inv->status])) {
+                $statusDistrib[$inv->status]['count']++;
+                $statusDistrib[$inv->status]['amount'] += $inv->total_amount;
+            }
+        }
+        $statusDistrib = array_values(array_filter($statusDistrib, fn($s) => $s['count'] > 0));
+
+        $funnelLabels  = ['Нове замовлення', 'Очікує оплати', 'Оплачено/Відпр.', 'В дорозі'];
+        $funnelGroups  = [[9], [2], [3, 4, 5], [6, 7]];
+        $funnelAmounts = array_fill(0, 4, 0);
+        $funnelCounts  = array_fill(0, 4, 0);
+        foreach ($activeInvoices as $inv) {
+            foreach ($funnelGroups as $i => $statuses) {
+                if (in_array($inv->status, $statuses)) {
+                    $funnelAmounts[$i] += $inv->total_amount;
+                    $funnelCounts[$i]++;
+                }
+            }
+        }
+
+        // === Top 10 clients by total sales amount ===
+        $topClients = [];
+        foreach ($dataProvider->getModels() as $inv) {
+            $name = $inv->customers->name ?? 'Невідомий';
+            @$topClients[$name] += $inv->total_amount;
+        }
+        arsort($topClients);
+        $topClients = array_slice($topClients, 0, 10, true);
+
+        // === Top 10 products by quantity sold ===
+        $topProducts = [];
+        $saleItems = \app\models\InvoiceItem::find()
+            ->joinWith(['invoices'])
+            ->andWhere(['invoice.document_type' => 'sale', 'invoice.status' => 1])
+            ->andWhere(['between', 'invoice.date', $filter['dateFrom'], $filter['dateTo']])
+            ->all();
+        foreach ($saleItems as $saleItem) {
+            $rawName = $saleItem->products->name ?? 'Без назви';
+            $name = mb_strlen($rawName) > 35 ? mb_substr($rawName, 0, 35) . '…' : $rawName;
+            @$topProducts[$name] += $saleItem->quantity;
+        }
+        arsort($topProducts);
+        $topProducts = array_slice($topProducts, 0, 10, true);
+
+        return $this->render('index', compact(
+            'result', 'filter', 'dataProvider', 'billsProvider', 'searchModel', 'graph',
+            'yoyData', 'currentYear', 'prevYear', 'prevPrevYear',
+            'statusDistrib', 'topClients', 'topProducts',
+            'funnelLabels', 'funnelAmounts', 'funnelCounts'
+        ));
     }
 
     /**

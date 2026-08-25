@@ -37,7 +37,7 @@ class InvoiceController extends Controller
 //                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'sale', 'create', 'update', 'view', 'bill-pdf', 'invoice-pdf', 'add', 'check', 'import',
+                        'actions' => ['index', 'sale', 'create', 'update', 'view', 'bill-pdf', 'invoice-pdf', 'add', 'import',
                             'add-payment', 'add-import', 'add-import-payment', 'delete', 'erase',
                             'ajax-invoice-update', 'store', 'deletepayment'],
                         'allow' => true,
@@ -184,46 +184,6 @@ class InvoiceController extends Controller
         return $data;
     }
 
-    public function actionCheck()
-    {
-        $searchModel = new InvoiceSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
-        $dataProvider->pagination = false;
-        $dataProvider->query->andWhere(['document_type' => ['sale', 'income', 'import', 'bill'], 'store' => 'main', 'status' => [1]]);
-
-        $storeItems = [];
-
-        $productsArray = ArrayHelper::map(Product::find()->all(), 'id', 'name');
-
-        $invoiceItems = Invoice::find()->where(['status' => 1])->all();
-//        $result = [];
-//        foreach ($invoiceItems as $item) {
-//            if (empty($item->invoices)) {
-//                @$result[$item->invoice_id][] = [$item->id, $item->products->name, $item->quantity, $item->price];
-//            }
-//        }
-
-        foreach ($invoiceItems as $invoiceModel) {
-            foreach ($invoiceModel->items as $item) {
-                @$storeItems[$item->product_id]['product_name'] = $productsArray[$item->product_id];
-                if ($invoiceModel->document_type == 'income' || $invoiceModel->document_type == 'import') {
-                    @$storeItems[$item->product_id]['onStoreQuantity'] += $item->quantity;
-                    @$storeItems[$item->product_id]['income'] += $item->quantity;
-                } else if ($invoiceModel->document_type == 'sale') {
-                    @$storeItems[$item->product_id]['onStoreQuantity'] -= $item->quantity;
-                    @$storeItems[$item->product_id]['sold'] += $item->quantity;
-                    @$storeItems[$item->product_id]['profit'] += $item->price;
-                } else if ($invoiceModel->document_type == 'bill') {
-                    @$storeItems[$item->product_id]['orderedQuantity'] += $item->quantity;
-                    @$storeItems[$item->product_id]['sold'] -= $item->quantity;
-                }
-            }
-        }
-
-        return $this->render('check', [
-            'storeItems' => $storeItems,
-        ]);
-    }
 
     public function actionStore()
     {
@@ -244,9 +204,8 @@ class InvoiceController extends Controller
                         @$storeItems[$item->product_id]['onStoreQuantity'] += $item->quantity ?? 0;
                         @$storeItems[$item->product_id]['income'] += $item->quantity;
                         @$storeItems[$item->product_id]['income_cost'] += ($item->price ?? 0) * ($item->quantity ?? 0);
-                    } else {
+                    } else if ($item->invoices->document_type == 'import' && !in_array($item->invoices->status, [0, 8])) {
                         @$storeItems[$item->product_id]['orderedQuantity'] += $item->quantity ?? 0;
-//                        @$storeItems[$item->product_id]['income'] += $item->quantity;
                     }
                 } else if ($item->invoices->document_type == 'sale' && $item->invoices->status == 1) {
                     @$storeItems[$item->product_id]['onStoreQuantity'] -= $item->quantity ?? 0;

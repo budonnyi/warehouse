@@ -207,9 +207,9 @@ $this->registerCss('
                                     <td style="text-align:right">
                                         <?php $sold = $storeItem['sold'] ?? 0; ?>
                                         <?php if ((float)$sold < 0): ?>
-                                            <span class="store-badge store-badge-neg"><?= number_format((float)$sold, 2, '.', ' ') ?></span>
+                                            <span class="store-badge store-badge-neg"><?= (int)$sold ?></span>
                                         <?php elseif ($sold): ?>
-                                            <span class="store-money store-money-sold"><?= number_format((float)$sold, 2, '.', ' ') ?></span>
+                                            <span class="store-money store-money-sold"><?= (int)$sold ?></span>
                                         <?php else: ?>
                                             <span style="color:#94a3b8">—</span>
                                         <?php endif; ?>
@@ -217,9 +217,9 @@ $this->registerCss('
                                     <td style="text-align:right">
                                         <?php $income = $storeItem['income'] ?? 0; ?>
                                         <?php if ((float)$income < 0): ?>
-                                            <span class="store-badge store-badge-neg"><?= number_format((float)$income, 2, '.', ' ') ?></span>
+                                            <span class="store-badge store-badge-neg"><?= (int)$income ?></span>
                                         <?php elseif ($income): ?>
-                                            <span class="store-money store-money-income"><?= number_format((float)$income, 2, '.', ' ') ?></span>
+                                            <span class="store-money store-money-income"><?= (int)$income ?></span>
                                         <?php else: ?>
                                             <span style="color:#94a3b8">—</span>
                                         <?php endif; ?>

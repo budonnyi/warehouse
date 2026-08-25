@@ -37,27 +37,51 @@ $(function () {
     maintainAspectRatio: false,
     responsive: true,
     legend: {
-      display: false
+      display: true,
+      labels: {
+        fontColor: '#efefef',
+        fontSize: 12
+      }
+    },
+    tooltips: {
+      mode: 'index',
+      intersect: false,
+      callbacks: {
+        label: function(tooltipItem, data) {
+          var label = data.datasets[tooltipItem.datasetIndex].label || ''
+          var value = tooltipItem.yLabel
+          return label + ': ' + value.toLocaleString('uk-UA', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' грн'
+        }
+      }
+    },
+    hover: {
+      mode: 'index',
+      intersect: false
     },
     scales: {
       xAxes: [{
         ticks: {
-          fontColor: '#efefef'
+          fontColor: '#efefef',
+          fontSize: 11
         },
         gridLines: {
           display: false,
-          color: '#efefef',
           drawBorder: false
         }
       }],
       yAxes: [{
         ticks: {
-          stepSize: 5000,
-          fontColor: '#efefef'
+          fontColor: '#efefef',
+          fontSize: 11,
+          callback: function(value) {
+            if (value >= 1000000) return (value / 1000000).toFixed(1) + ' М'
+            if (value >= 1000) return (value / 1000).toFixed(0) + ' К'
+            return value
+          }
         },
         gridLines: {
           display: true,
-          color: '#efefef',
+          color: 'rgba(239,239,239,0.2)',
           drawBorder: false
         }
       }]

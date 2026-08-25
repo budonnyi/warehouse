@@ -249,28 +249,64 @@ $this->title = 'Warehouse Application';
         <div class="card bg-gradient-info">
             <div class="card-header border-0">
                 <h3 class="card-title">
-                    <i class="fas fa-th mr-1"></i>
-                    Sales Graph
+                    <i class="fas fa-chart-line mr-1"></i>
+                    Сезонність <?= $prevPrevYear ?> / <?= $prevYear ?> / <?= $currentYear ?>
                 </h3>
-
-                <div class="card-tools">
-                    <button type="button" class="btn bg-info btn-sm" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn bg-info btn-sm" data-card-widget="remove">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
             </div>
             <div class="card-body">
                 <canvas class="chart" id="line-chart"
                         style="min-height: 270px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
             </div>
-
         </div>
         <!-- /.card -->
     </section>
     <!-- right col -->
+</div>
+
+<div class="row mt-3">
+    <section class="col-lg-5 connectedSortable">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-chart-pie mr-1"></i> Розподіл угод за статусом</h3>
+            </div>
+            <div class="card-body" style="position:relative;height:320px;">
+                <canvas id="status-donut" style="max-height:300px;"></canvas>
+            </div>
+        </div>
+    </section>
+    <section class="col-lg-7 connectedSortable">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-users mr-1"></i> Топ-10 клієнтів за реалізацією</h3>
+            </div>
+            <div class="card-body" style="position:relative;height:320px;">
+                <canvas id="top-clients-chart" style="max-height:300px;"></canvas>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="row mt-3">
+    <section class="col-lg-7 connectedSortable">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-boxes mr-1"></i> Топ товарів за кількістю продажів</h3>
+            </div>
+            <div class="card-body" style="position:relative;height:320px;">
+                <canvas id="top-products-chart" style="max-height:300px;"></canvas>
+            </div>
+        </div>
+    </section>
+    <section class="col-lg-5 connectedSortable">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-filter mr-1"></i> Воронка продажів (грн)</h3>
+            </div>
+            <div class="card-body" style="position:relative;height:320px;">
+                <canvas id="funnel-chart" style="max-height:300px;"></canvas>
+            </div>
+        </div>
+    </section>
 </div>
 
 <div class="row">
@@ -380,25 +416,190 @@ $this->title = 'Warehouse Application';
 
 <!--<script src="/dist/js/pages/dashboard.js"></script>-->
 <script>
+    $(function () {
+        // --- Status donut ---
+        var statusDonutCtx = document.getElementById('status-donut').getContext('2d');
+        var statusLabels  = <?= json_encode(array_column($statusDistrib, 'label')) ?>;
+        var statusAmounts = <?= json_encode(array_column($statusDistrib, 'amount')) ?>;
+        var statusCounts  = <?= json_encode(array_column($statusDistrib, 'count')) ?>;
+        new Chart(statusDonutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusAmounts,
+                    backgroundColor: ['#6c757d','#ffc107','#007bff','#6f42c1','#fd7e14','#20c997','#e83e8c'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                legend: { position: 'right', labels: { fontSize: 11, padding: 8 } },
+                tooltips: {
+                    callbacks: {
+                        label: function(item, data) {
+                            var amount = data.datasets[0].data[item.index];
+                            var count  = statusCounts[item.index];
+                            return data.labels[item.index] + ': ' + count + ' угод / ' +
+                                amount.toLocaleString('uk-UA', {maximumFractionDigits: 0}) + ' грн';
+                        }
+                    }
+                }
+            }
+        });
 
-    // $(function () {
-    //
-    // })
+        // --- Top 10 clients ---
+        var topClientsCtx    = document.getElementById('top-clients-chart').getContext('2d');
+        var topClientsLabels = <?= json_encode(array_keys($topClients)) ?>;
+        var topClientsData   = <?= json_encode(array_values($topClients)) ?>;
+        new Chart(topClientsCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: topClientsLabels,
+                datasets: [{
+                    label: 'Сума (грн)',
+                    data: topClientsData,
+                    backgroundColor: 'rgba(0,123,255,0.65)',
+                    borderColor: '#007bff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                legend: { display: false },
+                scales: {
+                    xAxes: [{ ticks: { callback: function(v) { return v >= 1000000 ? (v/1000000).toFixed(1)+'М' : v >= 1000 ? (v/1000).toFixed(0)+'К' : v; } } }],
+                    yAxes: [{ ticks: { fontSize: 11 } }]
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(item) {
+                            return item.xLabel.toLocaleString('uk-UA', {maximumFractionDigits: 0}) + ' грн';
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- Top 10 products ---
+        var topProductsCtx    = document.getElementById('top-products-chart').getContext('2d');
+        var topProductsLabels = <?= json_encode(array_keys($topProducts)) ?>;
+        var topProductsData   = <?= json_encode(array_values($topProducts)) ?>;
+        new Chart(topProductsCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: topProductsLabels,
+                datasets: [{
+                    label: 'Кількість (шт)',
+                    data: topProductsData,
+                    backgroundColor: 'rgba(40,167,69,0.65)',
+                    borderColor: '#28a745',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                legend: { display: false },
+                scales: {
+                    xAxes: [{ ticks: { stepSize: 1, beginAtZero: true } }],
+                    yAxes: [{ ticks: { fontSize: 11 } }]
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(item) { return item.xLabel + ' шт.'; }
+                    }
+                }
+            }
+        });
+
+        // --- Funnel ---
+        var funnelCtx     = document.getElementById('funnel-chart').getContext('2d');
+        var funnelLabels  = <?= json_encode($funnelLabels) ?>;
+        var funnelAmounts = <?= json_encode($funnelAmounts) ?>;
+        var funnelCounts  = <?= json_encode($funnelCounts) ?>;
+        new Chart(funnelCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: funnelLabels,
+                datasets: [{
+                    label: 'Сума (грн)',
+                    data: funnelAmounts,
+                    backgroundColor: ['#6c757d','#ffc107','#007bff','#20c997'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                legend: { display: false },
+                scales: {
+                    xAxes: [{ ticks: { callback: function(v) { return v >= 1000000 ? (v/1000000).toFixed(1)+'М' : v >= 1000 ? (v/1000).toFixed(0)+'К' : v; } } }],
+                    yAxes: [{ ticks: { fontSize: 12 } }]
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(item, data) {
+                            var amount = data.datasets[0].data[item.index];
+                            var count  = funnelCounts[item.index];
+                            return amount.toLocaleString('uk-UA', {maximumFractionDigits: 0}) + ' грн / ' + count + ' угод';
+                        }
+                    }
+                }
+            }
+        });
+    });
+    <?php
+    $ukMonths = ['01'=>'Січ','02'=>'Лют','03'=>'Бер','04'=>'Кві','05'=>'Тра','06'=>'Чер',
+                 '07'=>'Лип','08'=>'Сер','09'=>'Вер','10'=>'Жов','11'=>'Лис','12'=>'Гру'];
+    ?>
     var salesGraphChartData = {
-        labels: JSON.parse('<?= json_encode(array_keys($graph)) ?>'), //'['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', ' Q1', ' Q2'],
+        labels: <?= json_encode(array_values($ukMonths)) ?>,
         datasets: [
             {
-                label: 'Digital Goods',
+                label: '<?= $currentYear ?> (грн)',
+                fill: true,
+                borderWidth: 2,
+                lineTension: 0.3,
+                spanGaps: true,
+                borderColor: '#ffffff',
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                pointRadius: 4,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: 'rgba(255,255,255,0.8)',
+                data: <?= json_encode(array_values($yoyData[$currentYear])) ?>
+            },
+            {
+                label: '<?= $prevYear ?> (грн)',
                 fill: false,
                 borderWidth: 2,
-                lineTension: 0,
+                lineTension: 0.3,
                 spanGaps: true,
-                borderColor: '#efefef',
+                borderColor: 'rgba(255,255,255,0.55)',
+                backgroundColor: 'rgba(0,0,0,0)',
                 pointRadius: 3,
-                pointHoverRadius: 7,
-                pointColor: '#efefef',
-                pointBackgroundColor: '#efefef',
-                data: JSON.parse('<?= json_encode(array_values($graph)) ?>'), //[2666, 2778, 4912, 3767, 6810, 5670, 4820, 15073, 10687, 8432]
+                pointHoverRadius: 6,
+                pointBackgroundColor: 'rgba(255,255,255,0.55)',
+                borderDash: [5, 5],
+                data: <?= json_encode(array_values($yoyData[$prevYear])) ?>
+            },
+            {
+                label: '<?= $prevPrevYear ?> (грн)',
+                fill: false,
+                borderWidth: 1,
+                lineTension: 0.3,
+                spanGaps: true,
+                borderColor: 'rgba(255,255,255,0.28)',
+                backgroundColor: 'rgba(0,0,0,0)',
+                pointRadius: 2,
+                pointHoverRadius: 5,
+                pointBackgroundColor: 'rgba(255,255,255,0.28)',
+                borderDash: [2, 4],
+                data: <?= json_encode(array_values($yoyData[$prevPrevYear])) ?>
             }
         ]
     }

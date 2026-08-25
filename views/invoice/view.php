@@ -207,7 +207,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         'headerOptions' => ['style' => 'text-align:center'],
                         'contentOptions' => ['style' => 'text-align:right'],
                         'value' => function ($data) {
-                            return number_format($data->price, 2, '.', '\'');
+                            return number_format($data->price ?? 0, 2, '.', '\'');
                         },
                         'format' => 'html'
                     ],
