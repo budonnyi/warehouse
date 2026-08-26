@@ -217,6 +217,40 @@ $this->registerCss('
 /* ─── Summary & pagination ─── */
 .inv-wrap .summary{margin-left:8px;margin-top:5px;display:block;}
 .inv-wrap .pagination{margin-top:5px;}
+
+/* ─── Status select ─── */
+.inv-status-select{
+    font-size:11px;font-weight:600;
+    padding:3px 6px;border-radius:20px;
+    border:1px solid #cbd5e1;background:#f8fafc;
+    cursor:pointer;width:100%;max-width:170px;
+    transition:border-color .15s,background .15s;
+    -webkit-appearance:none;appearance:none;
+    text-align:center;
+}
+.inv-status-select:focus{outline:none;border-color:#60a5fa;box-shadow:0 0 0 2px rgba(96,165,250,.2);}
+.inv-status-select.inv-sel-changed{border-color:#f59e0b!important;background:#fffbeb!important;}
+
+/* ─── Save bar ─── */
+.inv-save-bar{
+    position:sticky;bottom:0;
+    background:#fff;border-top:2px solid #e2e8f0;
+    padding:10px 20px;
+    display:flex;align-items:center;gap:12px;
+    z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.06);
+}
+.inv-save-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:7px 18px;background:#2563eb;color:#fff;
+    font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;
+    transition:background .15s;
+}
+.inv-save-btn:hover:not(:disabled){background:#1d4ed8;}
+.inv-save-btn:disabled{background:#93c5fd;cursor:not-allowed;}
+.inv-save-badge{
+    background:#fef08a;color:#713f12;border-radius:10px;
+    padding:1px 7px;font-size:11px;font-weight:700;
+}
 ');
 ?>
 
@@ -471,21 +505,14 @@ $this->registerCss('
                         'filter'         => Yii::$app->params['statuses'],
                         'value'          => function ($data) {
                             $statuses = Yii::$app->params['statuses'];
-                            $label    = isset($statuses[$data->status]) ? $statuses[$data->status] : '—';
-                            if ($data->status == 1) {
-                                $cls = 'inv-b-done';
-                            } elseif (in_array($data->status, [2, 6, 7, 9])) {
-                                $cls = 'inv-b-wip';
-                            } elseif (in_array($data->status, [3, 4, 5])) {
-                                $cls = 'inv-b-ship';
-                            } elseif ($data->status == 0) {
-                                $cls = 'inv-b-cancel';
-                            } else {
-                                $cls = 'inv-b-def';
+                            $opts = '';
+                            foreach ($statuses as $val => $label) {
+                                $sel = ((int)$val === (int)$data->status) ? ' selected' : '';
+                                $opts .= '<option value="' . $val . '"' . $sel . '>' . Html::encode($label) . '</option>';
                             }
-                            return '<span class="inv-badge ' . $cls . '">' . Html::encode($label) . '</span>';
+                            return '<select class="inv-status-select" data-id="' . $data->id . '" data-original="' . $data->status . '">' . $opts . '</select>';
                         },
-                        'format' => 'html',
+                        'format' => 'raw',
                     ],
 
                     /* ── Файли (import) ── */
@@ -546,5 +573,70 @@ $this->registerCss('
 
         </div>
 
+        <div class="inv-save-bar">
+            <button class="inv-save-btn" id="invSaveBtn" disabled>
+                Зберегти статуси <span class="inv-save-badge" id="invChangedCount" style="display:none">0</span>
+            </button>
+            <span id="invSaveMsg" style="font-size:12px;color:#16a34a;display:none;font-weight:500;"></span>
+        </div>
+
     </section>
 </div>
+
+<?php
+$csrf      = Yii::$app->request->csrfToken;
+$csrfParam = Yii::$app->request->csrfParam;
+$this->registerJs(<<<JS
+    var invChanged = {};
+
+    \$(document).on('change', '.inv-status-select', function () {
+        var \$sel = \$(this);
+        var id   = \$sel.data('id');
+        var orig = String(\$sel.data('original'));
+        var cur  = \$sel.val();
+
+        if (cur !== orig) {
+            \$sel.addClass('inv-sel-changed');
+            invChanged[id] = cur;
+        } else {
+            \$sel.removeClass('inv-sel-changed');
+            delete invChanged[id];
+        }
+        updateInvBar();
+    });
+
+    function updateInvBar() {
+        var n = Object.keys(invChanged).length;
+        \$('#invSaveBtn').prop('disabled', n === 0);
+        if (n > 0) { \$('#invChangedCount').text(n).show(); }
+        else        { \$('#invChangedCount').hide(); }
+    }
+
+    \$('#invSaveBtn').on('click', function () {
+        var ids = Object.keys(invChanged);
+        if (!ids.length) return;
+
+        var reqs = ids.map(function (id) {
+            var postData = { invoiceId: id, status: invChanged[id] };
+            postData['{$csrfParam}'] = '{$csrf}';
+            return \$.ajax({ url: '/invoice/ajax-invoice-update', method: 'POST', data: postData });
+        });
+
+        \$.when.apply(\$, reqs).always(function () {
+            \$('.inv-status-select.inv-sel-changed').each(function () {
+                \$(this).data('original', \$(this).val()).removeClass('inv-sel-changed');
+            });
+            var saved = ids.length;
+            invChanged = {};
+            updateInvBar();
+            \$('#invSaveMsg').text('Збережено: ' + saved).show();
+            setTimeout(function () { \$('#invSaveMsg').fadeOut(function () { \$(this).show().css('display','none'); }); }, 3000);
+        });
+    });
+
+    \$(document).on('pjax:success', function () {
+        invChanged = {};
+        updateInvBar();
+    });
+JS
+); ?>
