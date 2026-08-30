@@ -81,7 +81,7 @@ $this->registerCss('
 .inv-wrap .table thead tr th{
     background:#6c757d;
     color:#f8f9fa;
-    font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+    font-size:15px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
     padding:10px 12px;
     border:none;
     white-space:nowrap;
@@ -98,7 +98,7 @@ $this->registerCss('
 }
 .inv-wrap .table tbody tr.filters td input,
 .inv-wrap .table tbody tr.filters td select{
-    width:100%;font-size:12px;padding:5px 8px;
+    width:100%;font-size:15px;padding:5px 8px;
     border:1px solid #cbd5e1;border-radius:var(--r);
     background:#fff;color:var(--c-ink);outline:none;
     transition:border-color .15s,box-shadow .15s;
@@ -132,7 +132,7 @@ $this->registerCss('
 
 /* ─── Doc-ref cell ─── */
 .inv-doc-ref{display:flex;flex-direction:column;gap:3px;min-width:90px;}
-.inv-doc-date{font-size:11px;color:var(--c-ink3);}
+.inv-doc-date{font-size:15px;color:var(--c-ink3);}
 .inv-doc-num{
     font-size:13px;font-weight:700;color:#2563eb;
     text-decoration:none;letter-spacing:-.01em;
@@ -158,21 +158,21 @@ $this->registerCss('
     line-height:1.3;
 }
 .inv-prods li:last-child{border-bottom:none;}
-.inv-pname{font-size:12.5px;color:var(--c-ink);}
+.inv-pname{font-size:15px;color:var(--c-ink);}
 .inv-pqty{
-    font-size:11px;color:#fff;background:#94a3b8;
+    font-size:15px;color:#fff;background:#94a3b8;
     border-radius:10px;padding:1px 5px;
     text-align:center;font-weight:600;
 }
 .inv-pprice{
-    font-size:12px;font-weight:600;color:#374151;
+    font-size:15px;font-weight:600;color:#374151;
     text-align:right;font-variant-numeric:tabular-nums;
 }
 
 /* ─── Payment block ─── */
 .inv-pay{display:flex;flex-direction:column;gap:4px;min-width:120px;white-space:nowrap;}
 .inv-pay-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.inv-pay-lbl{font-size:11px;color:var(--c-ink3);white-space:nowrap;}
+.inv-pay-lbl{font-size:15px;color:var(--c-ink3);white-space:nowrap;}
 .inv-pay-in{font-size:13px;font-weight:700;color:#16a34a;font-variant-numeric:tabular-nums;}
 .inv-pay-out{font-size:13px;font-weight:700;color:#dc2626;font-variant-numeric:tabular-nums;}
 .inv-pay-diff-row{
@@ -191,7 +191,7 @@ $this->registerCss('
 .inv-badge{
     display:inline-flex;align-items:center;justify-content:center;
     padding:3px 10px;border-radius:20px;
-    font-size:11px;font-weight:700;letter-spacing:.03em;white-space:nowrap;
+    font-size:15px;font-weight:700;letter-spacing:.03em;white-space:nowrap;
 }
 .inv-b-done  {background:var(--c-done-bg);  color:var(--c-done-txt);  border:1px solid var(--c-done-brd);}
 .inv-b-wip   {background:var(--c-wip-bg);   color:var(--c-wip-txt);   border:1px solid var(--c-wip-brd);}
@@ -220,7 +220,7 @@ $this->registerCss('
 
 /* ─── Status select ─── */
 .inv-status-select{
-    font-size:11px;font-weight:600;
+    font-size:15px;font-weight:600;
     padding:3px 6px;border-radius:20px;
     border:1px solid #cbd5e1;background:#f8fafc;
     cursor:pointer;width:100%;max-width:170px;
@@ -249,7 +249,7 @@ $this->registerCss('
 .inv-save-btn:disabled{background:#93c5fd;cursor:not-allowed;}
 .inv-save-badge{
     background:#fef08a;color:#713f12;border-radius:10px;
-    padding:1px 7px;font-size:11px;font-weight:700;
+    padding:1px 7px;font-size:15px;font-weight:700;
 }
 ');
 ?>
