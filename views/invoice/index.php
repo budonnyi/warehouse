@@ -280,7 +280,7 @@ $this->registerCss('
                 ) ?>
             </div>
 
-            <?php Pjax::begin(); ?>
+            <?php Pjax::begin(['id' => 'invoice-pjax']); ?>
 
             <div class="inv-table-scroll">
             <?= GridView::widget([
@@ -290,9 +290,9 @@ $this->registerCss('
                 'rowOptions'   => function ($model) {
                     if ($model->status == 1) {
                         return ['class' => 'inv-row-done'];
-                    } elseif (in_array($model->status, [2, 6, 7, 9])) {
+                    } elseif (in_array($model->status, [4, 6, 7, 9])) {
                         return ['class' => 'inv-row-wip'];
-                    } elseif (in_array($model->status, [3, 4, 5])) {
+                    } elseif (in_array($model->status, [2, 3, 5])) {
                         return ['class' => 'inv-row-ship'];
                     } elseif ($model->status == 0) {
                         return ['class' => 'inv-row-cancel'];
@@ -631,6 +631,8 @@ $this->registerJs(<<<JS
             updateInvBar();
             \$('#invSaveMsg').text('Збережено: ' + saved).show();
             setTimeout(function () { \$('#invSaveMsg').fadeOut(function () { \$(this).show().css('display','none'); }); }, 3000);
+            
+            \$.pjax.reload({ container: '#invoice-pjax', async: false });
         });
     });
 

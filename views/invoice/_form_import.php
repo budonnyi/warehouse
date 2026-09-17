@@ -671,7 +671,32 @@ $scriptFormat = <<<JS
         var v = parseInt($(this).val(), 10);
         $(this).val(isNaN(v) || v < 0 ? '' : String(v));
     });
-    $(document).on('input change', '#paymentItems input[name*="[amount]"]:not([type=hidden])', function() {
+    function efSanitizeAmountInput(val) {
+        // залишаємо тільки цифри, крапки та коми
+        val = val.replace(/[^0-9.,]/g, '');
+        // всі коми -> крапки
+        val = val.replace(/,/g, '.');
+        // лишаємо тільки першу крапку
+        var firstDot = val.indexOf('.');
+        if (firstDot !== -1) {
+            val = val.slice(0, firstDot + 1) + val.slice(firstDot + 1).replace(/\./g, '');
+        }
+        return val;
+    }
+    $(document).on('input', '#paymentItems input[name*="[amount]"]:not([type=hidden])', function() {
+        var input     = this;
+        var oldVal    = $(input).val();
+        var oldCaret  = input.selectionStart;
+        var newVal    = efSanitizeAmountInput(oldVal);
+        if (newVal !== oldVal) {
+            var removedBeforeCaret = oldVal.slice(0, oldCaret).length - efSanitizeAmountInput(oldVal.slice(0, oldCaret)).length;
+            $(input).val(newVal);
+            var newCaret = Math.max(0, oldCaret - removedBeforeCaret);
+            input.setSelectionRange(newCaret, newCaret);
+        }
+        updatePaymentTotal();
+    });
+    $(document).on('change', '#paymentItems input[name*="[amount]"]:not([type=hidden])', function() {
         updatePaymentTotal();
     });
 JS;
